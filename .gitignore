@@ -1,0 +1,21 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# DVC
+.dvc/
+data/
+
+# Environment
+.env
+venv/
+
+# IDE
+.vscode/
+.idea/
+
+# MLflow
+mlruns/
+
+# Docker
+*.env
