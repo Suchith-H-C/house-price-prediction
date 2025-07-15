@@ -17,3 +17,5 @@ mlruns/
 
 # Docker
 *.env
+/model.joblib
+/evaluation_metrics.txt
