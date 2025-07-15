@@ -1,61 +1,78 @@
 from fastapi import FastAPI, Request, Form
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, JSONResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 import pandas as pd
 import joblib
 
-app = FastAPI()
+app = FastAPI(title="🏡 House Price Prediction API")
+
 templates = Jinja2Templates(directory="templates")
 
-# Load model and column names
+# Load model and feature columns
 model = joblib.load("model.joblib")
 columns = joblib.load("columns.pkl")
 
+# Pydantic schema for API
 class HouseFeatures(BaseModel):
-    first_flr: float
-    second_flr: float
-    bedrooms: int
-    total_rooms: int
-    garage: float
-    living_area: float
-    lot_area: float
-    quality: int
+    first_flr: float = Field(..., example=856)
+    second_flr: float = Field(..., example=450)
+    bedrooms: int = Field(..., example=3)
+    total_rooms: int = Field(..., example=6)
+    garage: float = Field(..., example=480)
+    living_area: float = Field(..., example=1500)
+    lot_area: float = Field(..., example=7500)
+    quality: int = Field(..., ge=1, le=10, example=7)
 
+# Web UI endpoint
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse("index.html", {"request": request, "prediction": None})
 
-@app.post("/predict", response_class=HTMLResponse)
-async def predict(
+# Web form endpoint
+@app.post("/predict_form", response_class=HTMLResponse)
+async def predict_form(
     request: Request,
-    first_flr: float = Form(None),
-    second_flr: float = Form(None),
-    bedrooms: int = Form(None),
-    total_rooms: int = Form(None),
-    garage: float = Form(None),
-    living_area: float = Form(None),
-    lot_area: float = Form(None),
-    quality: int = Form(None),
+    first_flr: float = Form(...),
+    second_flr: float = Form(...),
+    bedrooms: int = Form(...),
+    total_rooms: int = Form(...),
+    garage: float = Form(...),
+    living_area: float = Form(...),
+    lot_area: float = Form(...),
+    quality: int = Form(...)
 ):
     try:
-        # Determine if it's a JSON (Swagger) request
-        if request.headers.get("content-type", "").startswith("application/json"):
-            json_data = await request.json()
-            features = HouseFeatures(**json_data)
-        else:
-            features = HouseFeatures(
-                first_flr=first_flr,
-                second_flr=second_flr,
-                bedrooms=bedrooms,
-                total_rooms=total_rooms,
-                garage=garage,
-                living_area=living_area,
-                lot_area=lot_area,
-                quality=quality
-            )
+        input_df = pd.DataFrame([{
+            "1stFlrSF": first_flr,
+            "2ndFlrSF": second_flr,
+            "BedroomAbvGr": bedrooms,
+            "TotRmsAbvGrd": total_rooms,
+            "GarageArea": garage,
+            "GrLivArea": living_area,
+            "LotArea": lot_area,
+            "OverallQual": quality
+        }])
 
-        # Create DataFrame in the correct feature order
+        input_df = input_df.reindex(columns=columns, fill_value=0)
+        prediction = model.predict(input_df)[0]
+        result = f"${round(prediction, 2):,}"
+
+        return templates.TemplateResponse("index.html", {
+            "request": request,
+            "prediction": result
+        })
+
+    except Exception as e:
+        return templates.TemplateResponse("index.html", {
+            "request": request,
+            "prediction": f"Error: {str(e)}"
+        })
+
+# JSON API for Swagger & clients
+@app.post("/predict", response_model=dict)
+def predict_api(features: HouseFeatures):
+    try:
         input_df = pd.DataFrame([{
             "1stFlrSF": features.first_flr,
             "2ndFlrSF": features.second_flr,
@@ -66,23 +83,11 @@ async def predict(
             "LotArea": features.lot_area,
             "OverallQual": features.quality
         }])
-
         input_df = input_df.reindex(columns=columns, fill_value=0)
         prediction = model.predict(input_df)[0]
-        result = f"${round(prediction, 2):,.2f}"
+        result = f"${round(prediction, 2):,}"
 
-        if request.headers.get("content-type", "").startswith("application/json"):
-            return JSONResponse(content={"predicted_price": result})
-        else:
-            return templates.TemplateResponse("index.html", {
-                "request": request,
-                "prediction": result
-            })
+        return {"predicted_price": result}
 
     except Exception as e:
-        if request.headers.get("content-type", "").startswith("application/json"):
-            return JSONResponse(status_code=500, content={"error": str(e)})
-        return templates.TemplateResponse("index.html", {
-            "request": request,
-            "prediction": f"Error: {str(e)}"
-        })
+        return {"error": str(e)}

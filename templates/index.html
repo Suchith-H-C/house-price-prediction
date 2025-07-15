@@ -6,22 +6,23 @@
     <style>
         body {
             font-family: 'Segoe UI', sans-serif;
-            background-color: #f5f7fa;
+            background: linear-gradient(120deg, #d4fc79, #96e6a1);
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
+            margin: 0;
         }
         .card {
             background: white;
             padding: 2rem 2.5rem;
             border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
             width: 420px;
         }
         h2 {
             text-align: center;
-            color: #333;
+            color: #2c3e50;
             margin-bottom: 1.5rem;
         }
         form {
@@ -29,13 +30,13 @@
             flex-direction: column;
         }
         label {
-            font-weight: 500;
+            font-weight: 600;
             margin-bottom: 0.3rem;
             color: #555;
         }
         input {
             padding: 0.6rem;
-            margin-bottom: 1.2rem;
+            margin-bottom: 1.1rem;
             border: 1px solid #ccc;
             border-radius: 6px;
             font-size: 1rem;
@@ -55,45 +56,46 @@
         .result {
             margin-top: 1.2rem;
             text-align: center;
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             color: #222;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
     <div class="card">
         <h2>🏡 Predict House Price</h2>
-        <form method="post" action="/predict">
-            <label for="first_flr">1st Floor Area (in sq ft)</label>
-            <input type="number" name="first_flr" min="0" step="1" placeholder="e.g., 856" required />
+        <form method="post" action="/predict_form">
+            <label>1st Floor Area (sq ft)</label>
+            <input type="number" name="first_flr" min="0" step="1" required placeholder="e.g., 856">
 
-            <label for="second_flr">2nd Floor Area (in sq ft)</label>
-            <input type="number" name="second_flr" min="0" step="1" placeholder="e.g., 450" required />
+            <label>2nd Floor Area (sq ft)</label>
+            <input type="number" name="second_flr" min="0" step="1" required placeholder="e.g., 450">
 
-            <label for="bedrooms">Bedrooms Above Ground</label>
-            <input type="number" name="bedrooms" min="1" max="10" placeholder="e.g., 3" required />
+            <label>Bedrooms Above Ground</label>
+            <input type="number" name="bedrooms" min="1" max="10" required placeholder="e.g., 3">
 
-            <label for="total_rooms">Total Rooms Above Ground</label>
-            <input type="number" name="total_rooms" min="1" max="15" placeholder="e.g., 6" required />
+            <label>Total Rooms Above Ground</label>
+            <input type="number" name="total_rooms" min="1" max="15" required placeholder="e.g., 6">
 
-            <label for="garage">Garage Area (in sq ft)</label>
-            <input type="number" name="garage" min="0" step="1" placeholder="e.g., 480" required />
+            <label>Garage Area (sq ft)</label>
+            <input type="number" name="garage" min="0" step="1" required placeholder="e.g., 480">
 
-            <label for="living_area">Living Area (in sq ft)</label>
-            <input type="number" name="living_area" min="100" step="1" placeholder="e.g., 1500" required />
+            <label>Living Area (sq ft)</label>
+            <input type="number" name="living_area" min="100" step="1" required placeholder="e.g., 1500">
 
-            <label for="lot_area">Lot Area (in sq ft)</label>
-            <input type="number" name="lot_area" min="1000" step="1" placeholder="e.g., 7500" required />
+            <label>Lot Area (sq ft)</label>
+            <input type="number" name="lot_area" min="1000" step="1" required placeholder="e.g., 7500">
 
-            <label for="quality">Overall Quality (1 = Poor, 10 = Excellent)</label>
-            <input type="number" name="quality" min="1" max="10" placeholder="e.g., 7" required />
+            <label>Overall Quality (1 = Poor, 10 = Excellent)</label>
+            <input type="number" name="quality" min="1" max="10" required placeholder="e.g., 7">
 
             <button type="submit">Predict</button>
         </form>
 
         {% if prediction %}
         <div class="result">
-            <strong>Predicted Price:</strong> {{ prediction }}
+            Predicted Price: {{ prediction }}
         </div>
         {% endif %}
     </div>
