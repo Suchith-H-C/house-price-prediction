@@ -2,7 +2,7 @@ import pandas as pd
 import yaml
 
 def preprocess(cfg):
-    df = pd.read_csv(cfg['data']['raw'])
+    df = pd.read_csv(cfg['data']['raw_path'])
     df.fillna(df.median(numeric_only=True), inplace=True)
     df = pd.get_dummies(df, drop_first=True)
     df.to_csv(cfg['data']['processed_path'], index=False)
