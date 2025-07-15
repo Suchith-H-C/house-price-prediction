@@ -17,14 +17,16 @@ def evaluate(cfg):
     y = df["SalePrice"]
     
     X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=cfg["model"]["test_size"], random_state=cfg["model"]["random_state"]
+        X, y,
+        test_size=cfg["model"]["test_size"],
+        random_state=cfg["model"]["random_state"]
     )
 
     y_pred = model.predict(X_test)
 
     # Metrics
     mse = mean_squared_error(y_test, y_pred)
-    rmse = mean_squared_error(y_test, y_pred, squared=False)
+    rmse = mse ** 0.5  # ✔️ Compatible way to compute RMSE
     mae = mean_absolute_error(y_test, y_pred)
     r2 = r2_score(y_test, y_pred)
 
@@ -36,6 +38,7 @@ def evaluate(cfg):
         mlflow.log_metric("eval_mae", mae)
         mlflow.log_metric("eval_r2_score", r2)
 
+    # Write metrics to file
     with open("evaluation_metrics.txt", "w") as f:
         f.write(f"RMSE: {rmse:.4f}\nMAE: {mae:.4f}\nR2: {r2:.4f}\nMSE: {mse:.4f}")
 
