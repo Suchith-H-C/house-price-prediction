@@ -25,8 +25,8 @@ stages:
       size: 1961304
     - path: src/training.py
       hash: md5
-      md5: 220a7a7b1626f995cff253dc5668c709
-      size: 1555
+      md5: 4c4afd35407eec1ed30891f4080710c6
+      size: 1875
     outs:
     - path: model.joblib
       hash: md5
@@ -45,10 +45,10 @@ stages:
       size: 4662769
     - path: src/evaluate.py
       hash: md5
-      md5: 65dfcef56523d4f731bf5d937e516dc9
-      size: 1548
+      md5: 3939d591612d1f9b967b96a018b45222
+      size: 1477
     outs:
     - path: evaluation_metrics.txt
       hash: md5
-      md5: 3553e5c014ab289fa758f6f92e63bbad
-      size: 53
+      md5: 5ad6e8e344f67e0d4efac76385aa6a97
+      size: 66
