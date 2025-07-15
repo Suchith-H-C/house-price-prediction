@@ -1,0 +1,4 @@
+
+Command To Activate the conda Environment in the VSCODE
+
+        & "C:\Users\Your_system_User_Name\Anaconda3\Scripts\conda.exe" "shell.powershell" "hook" | Out-String | Invoke-Expression
