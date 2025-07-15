@@ -6,6 +6,10 @@ import mlflow
 from sklearn.model_selection import train_test_split
 
 def evaluate(cfg):
+    """
+    Evaluates the model on test data and logs metrics to MLflow.
+    Also writes a local evaluation_metrics.txt file.
+    """
     df = pd.read_csv(cfg["data"]["processed_path"])
     model = joblib.load("model.joblib")
 
