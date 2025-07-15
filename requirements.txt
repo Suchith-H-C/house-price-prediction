@@ -1,4 +1,7 @@
-pandas
-pyyaml
+fastapi
+uvicorn
 scikit-learn
 joblib
+pandas
+pyyaml
+mlflow
