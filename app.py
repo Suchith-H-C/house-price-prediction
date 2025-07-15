@@ -3,19 +3,13 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 import pandas as pd
 import joblib
-import os
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 
-# Load model once at startup
+# Load model and expected columns
 model = joblib.load("model.joblib")
-
-# Replace with your actual feature list
-FEATURE_NAMES = [
-    "1stFlrSF", "2ndFlrSF", "BedroomAbvGr", "TotRmsAbvGrd",
-    "GarageArea", "GrLivArea", "LotArea", "OverallQual"
-]
+expected_columns = joblib.load("columns.pkl")
 
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request):
@@ -34,8 +28,8 @@ async def predict(
     quality: int = Form(...)
 ):
     try:
-        # Map inputs to feature names
-        input_data = pd.DataFrame([{
+        # Map form input to DataFrame
+        input_df = pd.DataFrame([{
             "1stFlrSF": first_flr,
             "2ndFlrSF": second_flr,
             "BedroomAbvGr": bedrooms,
@@ -46,7 +40,11 @@ async def predict(
             "OverallQual": quality
         }])
 
-        prediction = model.predict(input_data)[0]
+        # Align features with training columns
+        input_df = input_df.reindex(columns=expected_columns, fill_value=0)
+
+        # Predict
+        prediction = model.predict(input_df)[0]
         return templates.TemplateResponse("index.html", {
             "request": request,
             "prediction": f"${round(prediction, 2)}"
