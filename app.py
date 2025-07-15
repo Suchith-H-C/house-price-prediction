@@ -1,30 +1,38 @@
-from fastapi import FastAPI
-from pydantic import BaseModel
+from fastapi import FastAPI, Request, Form
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 import joblib
+import numpy as np
 import pandas as pd
-import yaml
 
-# Load config and model
-with open("params.yml", "r") as f:
-    config = yaml.safe_load(f)
+app = FastAPI()
+templates = Jinja2Templates(directory="templates")
 
+# Load the trained model
 model = joblib.load("model.joblib")
 
-app = FastAPI(
-    title="House Price Prediction API",
-    description="API for predicting house prices using a trained Random Forest model",
-    version="1.0"
-)
+@app.get("/", response_class=HTMLResponse)
+def read_form(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request, "result": None})
 
-# Define input schema
-class HouseFeatures(BaseModel):
-    features: dict
+@app.post("/predict", response_class=HTMLResponse)
+def predict(request: Request,
+            OverallQual: int = Form(...),
+            GrLivArea: float = Form(...),
+            GarageCars: int = Form(...),
+            TotalBsmtSF: float = Form(...),
+            FullBath: int = Form(...),
+            YearBuilt: int = Form(...)):
 
-@app.post("/predict")
-def predict(data: HouseFeatures):
-    try:
-        df = pd.DataFrame([data.features])
-        prediction = model.predict(df)
-        return {"prediction": prediction[0]}
-    except Exception as e:
-        return {"error": str(e)}
+    # Example input order should match the trained model
+    input_data = pd.DataFrame([{
+        "OverallQual": OverallQual,
+        "GrLivArea": GrLivArea,
+        "GarageCars": GarageCars,
+        "TotalBsmtSF": TotalBsmtSF,
+        "FullBath": FullBath,
+        "YearBuilt": YearBuilt
+    }])
+
+    prediction = model.predict(input_data)[0]
+    return templates.TemplateResponse("index.html", {"request": request, "result": f"${prediction:,.2f}"})
