@@ -6,3 +6,4 @@ pandas
 pyyaml
 mlflow
 jinja2
+pytest
