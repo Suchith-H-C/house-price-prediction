@@ -4,8 +4,11 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel
 import pandas as pd
 import joblib
+from prometheus_fastapi_instrumentator import Instrumentator
+
 
 app = FastAPI()
+Instrumentator().instrument(app).expose(app)
 templates = Jinja2Templates(directory="templates")
 
 # Load model and expected column order
