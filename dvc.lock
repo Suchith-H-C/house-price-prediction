@@ -52,3 +52,23 @@ stages:
       hash: md5
       md5: 5ad6e8e344f67e0d4efac76385aa6a97
       size: 66
+  drift:
+    cmd: python monitor_drift.py
+    deps:
+    - path: data/current.csv
+      hash: md5
+      md5: 084c0c73ffa2c38b271ceeb3737501c2
+      size: 674093
+    - path: data/reference.csv
+      hash: md5
+      md5: 15e142be20d40f5c06dc53740fe6232f
+      size: 674082
+    - path: monitor_drift.py
+      hash: md5
+      md5: 5bdc00ffb6f1e601ba8156b7d3c96075
+      size: 657
+    outs:
+    - path: reports/drift_report.html
+      hash: md5
+      md5: dbf47da23433e630731b84f4ed35fa3f
+      size: 8296787
