@@ -8,10 +8,11 @@ import joblib
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 
-# Load model and feature columns
+# Load model and expected column order
 model = joblib.load("model.joblib")
 columns = joblib.load("columns.pkl")
 
+# JSON input schema for API clients
 class HouseFeatures(BaseModel):
     first_flr: float
     second_flr: float
@@ -22,13 +23,14 @@ class HouseFeatures(BaseModel):
     lot_area: float
     quality: int
 
+# Home route to render form
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request):
-    # Don’t send prediction key at all initially
     return templates.TemplateResponse("index.html", {"request": request})
 
+# HTML form submission (from index.html)
 @app.post("/predict", response_class=HTMLResponse)
-async def predict(
+async def predict_form(
     request: Request,
     first_flr: float = Form(...),
     second_flr: float = Form(...),
@@ -40,28 +42,16 @@ async def predict(
     quality: int = Form(...),
 ):
     try:
-        features = HouseFeatures(
-            first_flr=first_flr,
-            second_flr=second_flr,
-            bedrooms=bedrooms,
-            total_rooms=total_rooms,
-            garage=garage,
-            living_area=living_area,
-            lot_area=lot_area,
-            quality=quality
-        )
-
         input_df = pd.DataFrame([{
-            "1stFlrSF": features.first_flr,
-            "2ndFlrSF": features.second_flr,
-            "BedroomAbvGr": features.bedrooms,
-            "TotRmsAbvGrd": features.total_rooms,
-            "GarageArea": features.garage,
-            "GrLivArea": features.living_area,
-            "LotArea": features.lot_area,
-            "OverallQual": features.quality
+            "1stFlrSF": first_flr,
+            "2ndFlrSF": second_flr,
+            "BedroomAbvGr": bedrooms,
+            "TotRmsAbvGrd": total_rooms,
+            "GarageArea": garage,
+            "GrLivArea": living_area,
+            "LotArea": lot_area,
+            "OverallQual": quality
         }])
-
         input_df = input_df.reindex(columns=columns, fill_value=0)
         prediction = model.predict(input_df)[0]
         result = f"${round(prediction, 2):,.2f}"
@@ -76,3 +66,23 @@ async def predict(
             "request": request,
             "error": str(e)
         })
+
+# Optional: JSON-based prediction endpoint (for curl/Postman)
+@app.post("/predict-json", response_model=dict)
+async def predict_json(features: HouseFeatures):
+    try:
+        input_df = pd.DataFrame([{
+            "1stFlrSF": features.first_flr,
+            "2ndFlrSF": features.second_flr,
+            "BedroomAbvGr": features.bedrooms,
+            "TotRmsAbvGrd": features.total_rooms,
+            "GarageArea": features.garage,
+            "GrLivArea": features.living_area,
+            "LotArea": features.lot_area,
+            "OverallQual": features.quality
+        }])
+        input_df = input_df.reindex(columns=columns, fill_value=0)
+        prediction = model.predict(input_df)[0]
+        return {"predicted_price": round(prediction, 2)}
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
