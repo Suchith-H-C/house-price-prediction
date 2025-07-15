@@ -6,17 +6,21 @@ import joblib, yaml, mlflow
 import mlflow.sklearn
 
 def train(cfg):
+    # Load processed data
     df = pd.read_csv(cfg["data"]["processed_path"])
     X = df.drop("SalePrice", axis=1)
     y = df["SalePrice"]
-    
+
+    # Train-test split
     X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=cfg["model"]["test_size"], random_state=cfg["model"]["random_state"]
+        X, y,
+        test_size=cfg["model"]["test_size"],
+        random_state=cfg["model"]["random_state"]
     )
 
     mlflow.set_experiment("HousePricePrediction")
     with mlflow.start_run(run_name="Training"):
-        # Log parameters
+        # Log model parameters
         for param in cfg["model"]:
             mlflow.log_param(param, cfg["model"][param])
 
@@ -28,10 +32,8 @@ def train(cfg):
         )
         model.fit(X_train, y_train)
 
-        # Predict
+        # Predictions and metrics
         y_pred = model.predict(X_test)
-
-        # Compute metrics
         mse = mean_squared_error(y_test, y_pred)
         rmse = mean_squared_error(y_test, y_pred, squared=False)
         mae = mean_absolute_error(y_test, y_pred)
@@ -46,6 +48,9 @@ def train(cfg):
         # Save model
         joblib.dump(model, "model.joblib")
         mlflow.sklearn.log_model(model, "model")
+
+        # ✅ Save expected columns
+        joblib.dump(X.columns.tolist(), "columns.pkl")
 
         print(f"✅ Model trained and logged. RMSE: {rmse:.2f}, R2: {r2:.4f}")
 
