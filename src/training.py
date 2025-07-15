@@ -1,26 +1,24 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import mean_squared_error
-import joblib, yaml, mlflow, mlflow.sklearn
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+import joblib, yaml, mlflow
+import mlflow.sklearn
 
 def train(cfg):
-    # Load processed dataset
     df = pd.read_csv(cfg["data"]["processed_path"])
-    X, y = df.drop("SalePrice", axis=1), df["SalePrice"]
-
-    # Split data
+    X = df.drop("SalePrice", axis=1)
+    y = df["SalePrice"]
+    
     X_train, X_test, y_train, y_test = train_test_split(
-        X, y,
-        test_size=cfg["model"]["test_size"],
-        random_state=cfg["model"]["random_state"]
+        X, y, test_size=cfg["model"]["test_size"], random_state=cfg["model"]["random_state"]
     )
 
-    # Start MLflow tracking
-    mlflow.set_experiment("HousePrice")
-    with mlflow.start_run():
-        # Log model hyperparameters
-        mlflow.log_params({k: cfg["model"][k] for k in ["n_estimators", "max_depth"]})
+    mlflow.set_experiment("HousePricePrediction")
+    with mlflow.start_run(run_name="Training"):
+        # Log parameters
+        for param in cfg["model"]:
+            mlflow.log_param(param, cfg["model"][param])
 
         # Train model
         model = RandomForestRegressor(
@@ -30,17 +28,28 @@ def train(cfg):
         )
         model.fit(X_train, y_train)
 
-        # Predict and evaluate
+        # Predict
         y_pred = model.predict(X_test)
-        rmse = mean_squared_error(y_test, y_pred, squared=False)
-        mlflow.log_metric("rmse", rmse)
 
-        # Save and log model
+        # Compute metrics
+        mse = mean_squared_error(y_test, y_pred)
+        rmse = mean_squared_error(y_test, y_pred, squared=False)
+        mae = mean_absolute_error(y_test, y_pred)
+        r2 = r2_score(y_test, y_pred)
+
+        # Log metrics
+        mlflow.log_metric("train_mse", mse)
+        mlflow.log_metric("train_rmse", rmse)
+        mlflow.log_metric("train_mae", mae)
+        mlflow.log_metric("train_r2_score", r2)
+
+        # Save model
         joblib.dump(model, "model.joblib")
         mlflow.sklearn.log_model(model, "model")
 
-        print(f"✅ Model trained and logged to MLflow. RMSE: {rmse:.2f}")
+        print(f"✅ Model trained and logged. RMSE: {rmse:.2f}, R2: {r2:.4f}")
 
 if __name__ == "__main__":
-    cfg = yaml.safe_load(open("params.yml"))
+    with open("params.yml") as f:
+        cfg = yaml.safe_load(f)
     train(cfg)
