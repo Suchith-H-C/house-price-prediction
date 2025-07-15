@@ -63,37 +63,43 @@
 <body>
     <div class="card">
         <h2>🏡 Predict House Price</h2>
-        <form method="post" action="/predict_form">
+        <form method="post" action="/predict">
             <label>1st Floor Area (sq ft)</label>
-            <input type="number" name="first_flr" min="0" placeholder="e.g., 856" required>
+            <input type="number" name="first_flr" min="0" step="1" placeholder="e.g., 856" required />
 
             <label>2nd Floor Area (sq ft)</label>
-            <input type="number" name="second_flr" min="0" placeholder="e.g., 450" required>
+            <input type="number" name="second_flr" min="0" step="1" placeholder="e.g., 450" required />
 
             <label>Bedrooms Above Ground</label>
-            <input type="number" name="bedrooms" min="1" max="10" placeholder="e.g., 3" required>
+            <input type="number" name="bedrooms" min="1" max="10" placeholder="e.g., 3" required />
 
             <label>Total Rooms Above Ground</label>
-            <input type="number" name="total_rooms" min="1" max="15" placeholder="e.g., 6" required>
+            <input type="number" name="total_rooms" min="1" max="15" placeholder="e.g., 6" required />
 
             <label>Garage Area (sq ft)</label>
-            <input type="number" name="garage" min="0" placeholder="e.g., 480" required>
+            <input type="number" name="garage" min="0" step="1" placeholder="e.g., 480" required />
 
             <label>Living Area (sq ft)</label>
-            <input type="number" name="living_area" min="100" placeholder="e.g., 1500" required>
+            <input type="number" name="living_area" min="100" step="1" placeholder="e.g., 1500" required />
 
             <label>Lot Area (sq ft)</label>
-            <input type="number" name="lot_area" min="1000" placeholder="e.g., 7500" required>
+            <input type="number" name="lot_area" min="1000" step="1" placeholder="e.g., 7500" required />
 
             <label>Overall Quality (1 = Poor, 10 = Excellent)</label>
-            <input type="number" name="quality" min="1" max="10" placeholder="e.g., 7" required>
+            <input type="number" name="quality" min="1" max="10" placeholder="e.g., 7" required />
 
             <button type="submit">Predict</button>
         </form>
 
-        {% if prediction %}
+        {% if prediction is defined %}
         <div class="result">
             <strong>Predicted Price:</strong> {{ prediction }}
+        </div>
+        {% endif %}
+
+        {% if error is defined %}
+        <div class="result" style="color:red;">
+            <strong>Error:</strong> {{ error }}
         </div>
         {% endif %}
     </div>
