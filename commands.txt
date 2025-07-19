@@ -5,3 +5,27 @@
 
 To Run Grafana with promethesus
          docker-compose up
+
+To Reproduce the DVC Pipeline
+        dvc repro
+
+To Open MLflowUI
+        mlflow ui
+
+First Run This ==> To Run The FastAPI App
+        uvicorn app:app --reload
+
+# Build the image
+        docker build -t house-price-api .
+
+# Run the container
+        docker run -p 8000:8000 house-price-api
+
+to Run prometheus
+        open   http://127.0.0.1:8000/metrics
+
+to open application
+        open    http://127.0.0.1:8000/
+
+to open the promethesus
+        open http://localhost:9090/targets
