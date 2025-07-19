@@ -1,5 +1,6 @@
 # monitor_drift.py
 
+import os  # ✅ NEW: to create directories
 import pandas as pd
 from fastapi import FastAPI
 from prometheus_client import Gauge, generate_latest, CONTENT_TYPE_LATEST
@@ -32,6 +33,12 @@ def run_drift_analysis():
         drift_share_metric.set(drift_share)
         drift_detected_metric.set(drift_detected)
 
+        # ✅ Ensure reports folder exists
+        os.makedirs("reports", exist_ok=True)
+
+        # ✅ Save the drift report as HTML for DVC and manual inspection
+        report.save_html("reports/drift_report.html")
+
         print(f"✅ Drift analyzed: share={drift_share}, detected={bool(drift_detected)}")
 
     except Exception as e:
@@ -49,4 +56,8 @@ def drift_monitor_loop():
         time.sleep(60)
 
 # Start background thread
+# ✅ Run once immediately if script is run directly (for DVC)
+if __name__ == "__main__":
+    run_drift_analysis()
+
 threading.Thread(target=drift_monitor_loop, daemon=True).start()
